@@ -5,7 +5,7 @@ __pycache__/
 *.npz
 *.ckpt
 *.pth
-dataset/*
+# dataset/*
 swanlog/*
 result/*
 venv/
