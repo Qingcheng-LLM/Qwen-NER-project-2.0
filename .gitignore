@@ -1,0 +1,14 @@
+__pycache__/
+*.pt
+*.bin
+*.h5
+*.npz
+*.ckpt
+*.pth
+dataset/*
+swanlog/*
+result/*
+venv/
+.env/
+.ipynb_checkpoints/
+
