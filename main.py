@@ -74,6 +74,20 @@ def main():
     mdl = sanitize(config.model_name_or_path.split("/")[-1])
     config.target_dir = os.path.join(BASE_DIR, "result", f"{ds}_{mdl}")
     os.makedirs(config.target_dir, exist_ok=True)  # 创建保存目录
+    run = swanlab.init(
+        project=config.project_name,
+        experiment_name=f"{ds}_{mdl}",
+        config={
+            "model_name_or_path": config.model_name_or_path,
+            "learning_rate": config.learning_rate,
+            "batch_size": config.batch_size,
+            "num_epochs": config.num_epochs,
+            "warmup_ratio": config.warmup_ratio,
+            "lora_r": getattr(config, "lora_r", None),
+            "lora_alpha": getattr(config, "lora_alpha", None),
+            "lora_dropout": getattr(config, "lora_dropout", None),
+        },
+    )
     print("\n", 20 * "=", f"Training  Qwen_NER_LoRA model on device: {device}", 20 * "=", "\n")
     # 初始化训练状态
     best_score = -1             # 以初始 F1 作为当前最好
