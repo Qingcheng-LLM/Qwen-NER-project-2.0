@@ -1,4 +1,5 @@
 # python -m main 
+#gg config -w subscription=''​
 #git add -A
 #git commit -m "update"
 #git push  
