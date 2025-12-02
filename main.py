@@ -2,7 +2,7 @@
 #gg config -w subscription=''​
 #git add -A
 #git commit -m "update"
-#git push  
+#git push origin main 
 import os
 import torch
 import math

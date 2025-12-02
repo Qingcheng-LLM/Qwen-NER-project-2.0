@@ -18,7 +18,7 @@
  下载地址：https://github.com/spyysalo/bc2gm-corpus?utm_source=chatgpt.com<br>  
 
 ## 📊 预训练模型：
- 预训练模型下载脚本已在LLM_model文件夹下给出。<br>
+ 预训练模型下载脚本已在LLM_model文件夹下给出。<br>  
  1.Qwen2.5-7B <br>
 
 ## 🗓项目目录: 
