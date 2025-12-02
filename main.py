@@ -11,6 +11,7 @@ import argparse, re
 from train import train
 from valid import valid
 from torch.optim import AdamW
+import bitsandbytes as bnb
 from Dataset import NERDataset
 from my_config import my_Config
 from model import  Qwen_NER_LoRA
@@ -65,7 +66,9 @@ def main():
     #----------------------------------------------训练前准备-----------------------------------------------#
     # 初始化模型、优化器、学习率调度器
     model = Qwen_NER_LoRA(config)
-    optimizer = AdamW(model.parameters(), lr=config.learning_rate) #定义优化器
+    # 只优化需要训练的参数（LoRA 参数），兼容性更好
+    trainable_params = [p for p in model.parameters() if p.requires_grad]
+    optimizer = bnb.optim.PagedAdamW8bit(trainable_params, lr=config.learning_rate) #定义优化器
     steps_per_epoch = math.ceil(len(train_loader) / config.gradient_accumulation_steps)# 读取梯度累积步数（如果配置里没写，就默认 1）
     total_steps = steps_per_epoch * config.num_epochs       #按批次计算总步数，因为get_linear_schedule_with_warmup 是按 batch 的设计
     warmup_steps = int(total_steps * config.warmup_ratio)
