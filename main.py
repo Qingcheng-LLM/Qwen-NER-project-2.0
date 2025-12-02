@@ -89,7 +89,7 @@ def main():
             "lora_r": getattr(config, "lora_r", None),
             "lora_alpha": getattr(config, "lora_alpha", None),
             "lora_dropout": getattr(config, "lora_dropout", None),
-        },
+        }
     )
     print("\n", 20 * "=", f"Training  Qwen_NER_LoRA model on device: {device}", 20 * "=", "\n")
     # 初始化训练状态
