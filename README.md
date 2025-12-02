@@ -39,4 +39,4 @@ Qwen-NER-LoRA/
 
 ## 🚀项目流程图:  
 
-![项目logo](./assets/logo.png)
+![项目logo](https://github.com/Qingcheng-LLM/Qwen-NER-project-2.0/blob/main/image/%E6%B5%81%E7%A8%8B%E5%9B%BE.png)
