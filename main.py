@@ -10,7 +10,6 @@ import swanlab
 import argparse, re 
 from train import train
 from valid import valid
-from torch.optim import AdamW
 import bitsandbytes as bnb
 from Dataset import NERDataset
 from my_config import my_Config

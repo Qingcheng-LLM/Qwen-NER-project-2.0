@@ -14,10 +14,11 @@
     
 ## 📊 数据集来源： 
 
- 1.bc2gm命名实体识别数据集。下载地址：https://github.com/spyysalo/bc2gm-corpus?utm_source=chatgpt.com<br>  
+ 1.bc2gm命名实体识别数据集。<br>  
+ 下载地址：https://github.com/spyysalo/bc2gm-corpus?utm_source=chatgpt.com<br>  
 
 ## 📊 预训练模型：
- 预训练模型下载脚本已在LLM_model文件夹下给出。<br>  
+ 预训练模型下载脚本已在LLM_model文件夹下给出。<br>
  1.Qwen2.5-7B <br>
 
 ## 🗓项目目录: 
@@ -35,3 +36,6 @@ Qwen-NER-LoRA/
 ├─ downloadmodel.py             # 预训练权重下载脚本  
 └─ my_config.py / tool.py       # 配置与工具函数  
 ```
+
+## 🚀项目流程图:  
+![项目logo](./assets/logo.png)
