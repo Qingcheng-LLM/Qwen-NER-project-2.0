@@ -55,7 +55,7 @@ def main():
     #加载Tokenizer、创建数据集、数据加载器
     tokenizer = AutoTokenizer.from_pretrained(config.model_name_or_path, use_fast=False,trust_remote_code=True,)#不要fast版，因不稳定，信任仓库自带的tokenizer
     train_dataset = NERDataset ( tokenizer, train_data, max_len=config.max_len, is_train=True )
-    dev_dataset   = NERDataset ( tokenizer, dev_data,max_len=config.max_len, is_train=True )
+    dev_dataset   = NERDataset ( tokenizer, dev_data,max_len=config.max_len, is_train=False )
     train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True,
                                collate_fn=train_dataset.ner_collate_fn, 
                                num_workers=0,pin_memory=True)
