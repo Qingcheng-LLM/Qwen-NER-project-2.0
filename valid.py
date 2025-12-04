@@ -18,7 +18,7 @@ def valid(model, tokenizer, dev_loader):
             attention_mask = batch["attention_mask"].to(device)
             gold_outputs = batch["gold_outputs"]  # 真实答案文本列表
             #调用模型封装好的 predict 进行预测（里面已 @torch.no_grad）
-            gen_ids = model.predict(input_ids=input_ids, attention_mask=attention_mask)
+            gen_ids = model.generate(input_ids=input_ids,attention_mask=attention_mask,eos_token_id=tokenizer.eos_token_id,pad_token_id=tokenizer.eos_token_id,max_new_tokens=128,)
             #生成结果是 [prompt+新生成内容] 的token序列，需要切掉前面prompt的长度，只保留回答
             prompt_len = input_ids.size(1)
             gen_only = gen_ids[:, prompt_len:]

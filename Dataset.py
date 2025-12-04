@@ -40,13 +40,13 @@ class NERDataset(Dataset):
         return {"input_ids": input_ids,"attention_mask": attention_mask,"labels": labels}
     
     def encode_one_valid(self,example):
-        input = example["instruction"] +"\n"+  example["input"]
+        input = example["instruction"] +"\n"+  example["input"]+ "\n"
         output = example["output"]#答案部分
         #变成 token id   
         inputs_tokens =self.tokenizer(input,add_special_tokens=False) # 把system+user+assistant开头这一整段编码成token序列
         eos_ids = self.tokenizer(self.tokenizer.eos_token)["input_ids"]
         #构造最终的input_ids\attention_mask ----------（对话格式+<eos>
-        input_ids      = inputs_tokens["input_ids"] + eos_ids 
+        input_ids      = inputs_tokens["input_ids"]
         attention_mask = [1] * len(input_ids)
         labels         = [-100] * len(input_ids)  # 保持维度统一,验证时不需要标签
         #超长截断

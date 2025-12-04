@@ -66,6 +66,7 @@ def main():
     #----------------------------------------------训练前准备-----------------------------------------------#
     # 初始化模型、优化器、学习率调度器
     model = Qwen_NER_LoRA(config)
+    model.to(device)
     # 只优化需要训练的参数（LoRA 参数），兼容性更好
     trainable_params = [p for p in model.parameters() if p.requires_grad]
     optimizer = bnb.optim.PagedAdamW8bit(trainable_params, lr=config.learning_rate) #定义优化器

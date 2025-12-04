@@ -29,14 +29,14 @@ class Qwen_NER_LoRA(nn.Module):
             ) 
             # 加载带有完整头部的Qwen底座模型到合适的GPU上  (因果语言模型)
             base_model_1 = AutoModelForCausalLM.from_pretrained(config.model_name_or_path,
-                                                              device_map="auto",
+                                                              device_map={"": 1},
                                                               quantization_config=bnb_config,#QLoRA配置
                                                               trust_remote_code=True)
             #（无关LoRA，只轻量化基座）工作：1、保持LayerNorm/lm_head的高精度-更稳定。2、冻结不参与训练的底座权重。
             base_model = prepare_model_for_kbit_training(base_model_1)
         else:
             base_model = AutoModelForCausalLM.from_pretrained(config.model_name_or_path,
-                                                              device_map="auto",
+                                                              device_map={"": 1},
                                                               torch_dtype=torch.float16,#LoRA配置
                                                               trust_remote_code=True,)
         #配置LoRA 适配层，并配置相关参数
