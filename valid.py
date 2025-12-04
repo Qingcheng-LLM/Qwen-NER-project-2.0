@@ -1,7 +1,7 @@
 
 import time
 import torch
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from tool import indicator, parse_entities
 
 def valid(model, tokenizer, dev_loader):

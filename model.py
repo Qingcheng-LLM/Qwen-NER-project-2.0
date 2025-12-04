@@ -30,7 +30,7 @@ class Qwen_NER_LoRA(nn.Module):
         else:
             base_model = AutoModelForCausalLM.from_pretrained(config.model_name_or_path,
                                                               device_map="auto",
-                                                              torch_dtype=torch.bfloat16,#LoRA配置
+                                                              torch_dtype=torch.float16,#LoRA配置
                                                               trust_remote_code=True,)
         #配置LoRA 适配层，并配置相关参数
         lora_config = LoraConfig(

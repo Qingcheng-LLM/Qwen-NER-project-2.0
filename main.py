@@ -14,6 +14,7 @@ import bitsandbytes as bnb
 from Dataset import NERDataset
 from my_config import my_Config
 from model import  Qwen_NER_LoRA
+from torch.amp import GradScaler
 from torch.utils.data import DataLoader
 from tool import load_json,load_sft_jsonl
 from prepare_date import json_format_transfer
@@ -72,6 +73,7 @@ def main():
     total_steps = steps_per_epoch * config.num_epochs       #按批次计算总步数，因为get_linear_schedule_with_warmup 是按 batch 的设计
     warmup_steps = int(total_steps * config.warmup_ratio)
     scheduler = get_linear_schedule_with_warmup(optimizer,num_warmup_steps=warmup_steps,num_training_steps=total_steps)
+    scaler = GradScaler( device="cuda",enabled=(device.type == "cuda"))
     # 创建结果保存目录
     ds  = sanitize(config.dataset_name)
     mdl = sanitize(config.model_name_or_path.split("/")[-1])
@@ -100,7 +102,7 @@ def main():
     for epoch in range(config.num_epochs): 
         print("* Training epoch {}:".format(epoch+1))
         # 调用train()函数完成一个epoch的训练，返回「本轮次耗时」and「损失」。并打印
-        epoch_time, epoch_loss = train( model,train_loader,optimizer,config.max_grad_norm,writer=None,epoch=epoch,scheduler=scheduler,accumulation_steps=config.gradient_accumulation_steps)
+        epoch_time, epoch_loss = train( model,train_loader,optimizer,config.max_grad_norm,writer=None,epoch=epoch,scheduler=scheduler,accumulation_steps=config.gradient_accumulation_steps, scaler=scaler,use_amp=True, )
         print("-> Training time: {:.4f}s, loss = {:.4f}".format(epoch_time, epoch_loss))
         current_lr = optimizer.param_groups[0]["lr"]
         # 记录训练指标到 SwanLab
