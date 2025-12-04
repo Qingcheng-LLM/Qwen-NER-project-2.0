@@ -33,7 +33,7 @@ def main():
     if args.model:  # 命令行覆盖模型
         config_dict["model_name_or_path"] = args.model
     config = my_Config(**config_dict)#导入结构配置参数，将字典中的键值对作为关键字参数传递给my_Config类的构造函数，创建配置对象
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
     print(f"PyTorch: {torch.__version__}  CUDA: {torch.version.cuda}  Device: {device}")
     print('loading corpus')
     #-----------------------------------------------准备数据------------------------------------------------#

@@ -13,12 +13,19 @@ class Qwen_NER_LoRA(nn.Module):
          # --------------------------------------------------------
         load_in_4bit = config.load_in_4bit
         if load_in_4bit:
+            compute_dtype_str = getattr(config, "bnb_4bit_compute_dtype", "bfloat16")
+            if compute_dtype_str == "float16":
+                compute_dtype = torch.float16
+            elif compute_dtype_str == "bfloat16":
+                compute_dtype = torch.bfloat16
+            else:
+                compute_dtype = torch.bfloat16   # 默认用 bf16，比较稳
             #BitsAndBytesConfig 里面的字段专门为 4bit/8bit 量化模型准备，告诉基座模型要怎么被量化、怎么存在显存里、怎么在计算时反量化
             bnb_config = BitsAndBytesConfig(
                 load_in_4bit=True,     #把模型权重量化为 4bit 格式加载
                 bnb_4bit_use_double_quant=config.bnb_4bit_use_double_quant, #双量化，除了把权重量化为4bit，还把scale缩放因子量化为更小bit。缩放因为也会被存储，scale决定了把浮点数量化到离散整数的精度
                 bnb_4bit_quant_type=config.bnb_4bit_quant_type,             #量化类型（"nf4"、"fp4"） "nf4"是QLoRA推荐的 4bit 格式；
-                bnb_4bit_compute_dtype=config.bnb_4bit_compute_dtype,       #训练和推理的计算梯度损失时用什么精度（bfloat16 or float16看显卡）
+                bnb_4bit_compute_dtype=compute_dtype,       #训练和推理的计算梯度损失时用什么精度（bfloat16 or float16看显卡）
             ) 
             # 加载带有完整头部的Qwen底座模型到合适的GPU上  (因果语言模型)
             base_model_1 = AutoModelForCausalLM.from_pretrained(config.model_name_or_path,
