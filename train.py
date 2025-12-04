@@ -3,8 +3,8 @@ import time
 import torch
 from tqdm.auto import tqdm
 import torch.nn as nn
-from torch.cuda.amp import autocast,GradScaler
-
+from torch.cuda.amp import GradScaler
+from torch.amp import autocast
 #训练模型
 def train(model,dataloader,optimizer,max_gradient_norm, writer=None, epoch=None, scheduler=None, accumulation_steps: int = 1,scaler: GradScaler | None = None,use_amp: bool = False ):
     model.train()             #开启训练模式
@@ -27,7 +27,7 @@ def train(model,dataloader,optimizer,max_gradient_norm, writer=None, epoch=None,
     #3、前向传播  计算损失
         if use_amp:
             #在cuda上用float16自动混合精度
-            with autocast(device_type="cuda",dtype=torch.float16):
+            with autocast(device_type=device.type,dtype=torch.float16):
                 output = model(inputs, att_masks, label) #输入输入数据 and掩码 and标签「进行前向传播」
                 loss = model.loss(output)   
                 # 设置gradient_accumulation_steps = 4，代表累积4个小batch的梯度再更新一次参数。
