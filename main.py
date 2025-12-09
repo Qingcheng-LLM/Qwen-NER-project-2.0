@@ -1,4 +1,4 @@
-# python main.py
+# CUDA_VISIBLE_DEVICES=1 python main.py
 #gg config -w subscription=''​
 #git add -A
 #git commit -m "update"
@@ -33,7 +33,7 @@ def main():
     if args.model:  # 命令行覆盖模型
         config_dict["model_name_or_path"] = args.model
     config = my_Config(**config_dict)#导入结构配置参数，将字典中的键值对作为关键字参数传递给my_Config类的构造函数，创建配置对象
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda")
     print(f"PyTorch: {torch.__version__}  CUDA: {torch.version.cuda}  Device: {device}")
     print('loading corpus')
     #-----------------------------------------------准备数据------------------------------------------------#
@@ -74,7 +74,7 @@ def main():
     total_steps = steps_per_epoch * config.num_epochs       #按批次计算总步数，因为get_linear_schedule_with_warmup 是按 batch 的设计
     warmup_steps = int(total_steps * config.warmup_ratio)
     scheduler = get_linear_schedule_with_warmup(optimizer,num_warmup_steps=warmup_steps,num_training_steps=total_steps)
-    scaler = GradScaler( device="cuda",enabled=(device.type == "cuda"))
+    scaler = GradScaler(enabled=(device.type == "cuda"))
     # 创建结果保存目录
     ds  = sanitize(config.dataset_name)
     mdl = sanitize(config.model_name_or_path.split("/")[-1])

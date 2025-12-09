@@ -9,7 +9,7 @@
   "target_dir": "result/Qwen_LoRA",
   "data_dir_old": "dataset/old_dataset",
   "data_dir_new": "dataset/new_dataset",
-  "num_epochs": 5,
+  "num_epochs": 7,
   "batch_size": 4,
   "patience": 2,
   "learning_rate": 2e-5,
@@ -28,6 +28,6 @@
   "lora_r": 8,
   "lora_alpha": 32,
   "lora_dropout": 0.1,
-  "load_in_4bit": true,
+  "load_in_4bit": false,
   "target_modules": ["q_proj","k_proj","v_proj","o_proj","gate_proj","up_proj","down_proj"]
 }

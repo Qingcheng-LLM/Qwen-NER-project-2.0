@@ -61,32 +61,23 @@ class NERDataset(Dataset):
         batch_input_ids = [ex["input_ids"] for ex in batch]
         batch_attention_mask = [ex["attention_mask"] for ex in batch]
         batch_labels = [ex["labels"] for ex in batch]
-        max_len = self.max_len
+        max_len = max(len(seq) for seq in batch_input_ids) 
         set_input_ids = []
         set_attention_mask = []
         set_labels = []
         #对批次内的每个序列的三类数据都进行填充
         for input_ids, attention_mask, labels in zip(batch_input_ids, batch_attention_mask, batch_labels):
             pad_len = max_len - len(input_ids)# 计算每个序列数据需要填充的长度
-            if pad_len<0:
-                padded_input_ids = input_ids# 填充每个序列的token
-                padded_attention = attention_mask # 填充attention_mask
-                padded_labels = labels 
-            elif pad_len>0:
-                if self.is_train:
-                    # 训练时右填充
-                    padded_input_ids = input_ids + [self.tokenizer.eos_token_id] * pad_len# 填充每个序列的token
-                    padded_attention = attention_mask + [0] * pad_len# 填充attention_mask
-                    padded_labels = labels + [-100] * pad_len# 填充labels（用-100忽略）
-                else:
-                    # 验证/测试时左填充
-                    padded_input_ids = [self.tokenizer.eos_token_id] * pad_len + input_ids
-                    padded_attention = [0] * pad_len + attention_mask
-                    padded_labels = [-100] * pad_len + labels
+            if self.is_train:
+                # 训练时右填充
+                padded_input_ids = input_ids + [self.tokenizer.eos_token_id] * pad_len# 填充每个序列的token
+                padded_attention = attention_mask + [0] * pad_len# 填充attention_mask
+                padded_labels = labels + [-100] * pad_len# 填充labels（用-100忽略）
             else:
-                padded_input_ids = input_ids# 填充每个序列的token
-                padded_attention = attention_mask # 填充attention_mask
-                padded_labels = labels 
+                # 验证/测试时左填充
+                padded_input_ids = [self.tokenizer.eos_token_id] * pad_len + input_ids
+                padded_attention = [0] * pad_len + attention_mask
+                padded_labels = [-100] * pad_len + labels
             #填充以后收集本批次填充好的数据
             set_input_ids.append(padded_input_ids)
             set_attention_mask.append(padded_attention)
