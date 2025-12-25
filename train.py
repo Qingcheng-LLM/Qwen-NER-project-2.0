@@ -9,6 +9,9 @@ from torch.amp import autocast
 def train(model,dataloader,optimizer,max_gradient_norm, writer=None, epoch=None, scheduler=None, accumulation_steps: int = 1,scaler: GradScaler | None = None,use_amp: bool = False ):
     model.train()             #开启训练模式
     device = next(model.parameters()).device  #自动获取模型所在设备
+    #启用 NEFTune
+    if hasattr(model, "activate_neftune"):
+        model.activate_neftune(alpha=getattr(model.config, "neftune_alpha", 5.0))
     epoch_start =time.time()  #记录epoch开始时间
     optimizer.zero_grad()     #清空梯度
     batch_time_avg = 0.0      #累计批次处理时间
@@ -68,4 +71,7 @@ def train(model,dataloader,optimizer,max_gradient_norm, writer=None, epoch=None,
             tqdm_batch_iterator.set_description(description)
     epoch_time = time.time() - epoch_start            #记录该轮次的训练时间
     epoch_loss = running_loss / len(dataloader)       #计算平均损失
+    #关闭 NEFTune
+    if hasattr(model, "deactivate_neftune"):
+        model.deactivate_neftune()
     return epoch_time, epoch_loss

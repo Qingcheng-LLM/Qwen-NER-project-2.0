@@ -1,5 +1,5 @@
 # CUDA_VISIBLE_DEVICES=1 python main.py
-#gg config -w subscription=''​
+#gg config -w subscription='https://dash.pqjc.site/api/v1/client/subscribe?token=da1b08beba14a6d7b518a81f85139e1d'​
 #git add -A
 #git commit -m "update"
 #git push origin main 
@@ -22,6 +22,26 @@ from transformers import get_linear_schedule_with_warmup
 from transformers import AutoTokenizer#​HuggingFace提供的批处理函数用于告诉DataLoader如何把多个样本合并成一个 batch。1、动态计算每 batch中最长的序列长度；2、对input_ids、attention_mask、labels做填充；3、保证 padding 部分的 label 为 -100（不参与 loss 计算）；4、最终返回可直接输入模型的 batch 张量
 def sanitize(s): return re.sub(r'[^a-zA-Z0-9._-]+', '_', s) #将字符串中所有非字母、数字、点、下划线、短横线的字符替换为下划线
 
+def get_parameter_groups(model, weight_decay):
+    decay_params = []
+    no_decay_params = []
+    for name, param in model.named_parameters():
+        if not param.requires_grad:
+            continue
+        # 这些参数不做 weight decay
+        if (name.endswith(".bias")
+            or "layernorm" in name.lower()
+            or "layer_norm" in name.lower()
+            or "ln_" in name.lower()
+            or "norm" in name.lower()
+            or "embedding" in name.lower()):
+            no_decay_params.append(param)
+        else:
+            decay_params.append(param)
+    return [
+        {"params": decay_params, "weight_decay": weight_decay},
+        {"params": no_decay_params, "weight_decay": 0.0},]
+
 def main():
     #-----------------------------------------------argparse/配置------------------------------------------------#
     parser = argparse.ArgumentParser()
@@ -33,7 +53,7 @@ def main():
     if args.model:  # 命令行覆盖模型
         config_dict["model_name_or_path"] = args.model
     config = my_Config(**config_dict)#导入结构配置参数，将字典中的键值对作为关键字参数传递给my_Config类的构造函数，创建配置对象
-    device = torch.device("cuda")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"PyTorch: {torch.__version__}  CUDA: {torch.version.cuda}  Device: {device}")
     print('loading corpus')
     #-----------------------------------------------准备数据------------------------------------------------#
@@ -67,14 +87,14 @@ def main():
     # 初始化模型、优化器、学习率调度器
     model = Qwen_NER_LoRA(config)
     model.to(device)
-    # 只优化需要训练的参数（LoRA 参数），兼容性更好
-    trainable_params = [p for p in model.parameters() if p.requires_grad]
-    optimizer = bnb.optim.PagedAdamW8bit(trainable_params, lr=config.learning_rate) #定义优化器
+    # 只优化需要训练的参数
+    optimizer_grouped_params = get_parameter_groups(model, config.weight_decay)
+    optimizer = bnb.optim.PagedAdamW8bit(optimizer_grouped_params,lr=config.learning_rate)
     steps_per_epoch = math.ceil(len(train_loader) / config.gradient_accumulation_steps)# 读取梯度累积步数（如果配置里没写，就默认 1）
     total_steps = steps_per_epoch * config.num_epochs       #按批次计算总步数，因为get_linear_schedule_with_warmup 是按 batch 的设计
     warmup_steps = int(total_steps * config.warmup_ratio)
     scheduler = get_linear_schedule_with_warmup(optimizer,num_warmup_steps=warmup_steps,num_training_steps=total_steps)
-    scaler = GradScaler(enabled=(device.type == "cuda"))
+    scaler = GradScaler( device="cuda",enabled=(device.type=="cuda"))
     # 创建结果保存目录
     ds  = sanitize(config.dataset_name)
     mdl = sanitize(config.model_name_or_path.split("/")[-1])

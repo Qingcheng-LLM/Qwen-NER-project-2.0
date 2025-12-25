@@ -10,6 +10,8 @@ class Qwen_NER_LoRA(nn.Module):
     def __init__(self,config):
         super().__init__()#子类调用父类nn.Module的初始化方法
         self.config = config
+        self.neftune_noise_alpha = None
+        self._neftune_hook_handle = None
          # --------------------------------------------------------
         load_in_4bit = config.load_in_4bit
         if load_in_4bit:
@@ -37,7 +39,7 @@ class Qwen_NER_LoRA(nn.Module):
         else:
             base_model = AutoModelForCausalLM.from_pretrained(config.model_name_or_path,
                                                             #   device_map={"": 1},
-                                                              torch_dtype=torch.float16,#LoRA配置
+                                                              torch_dtype=torch.bfloat16,#LoRA配置
                                                               trust_remote_code=True,)
         #配置LoRA 适配层，并配置相关参数
         lora_config = LoraConfig(
@@ -46,8 +48,7 @@ class Qwen_NER_LoRA(nn.Module):
             lora_alpha  = config.lora_alpha,
             lora_dropout= config.lora_dropout,
             bias="none",
-            target_modules=config.target_modules,
-            )
+            target_modules=config.target_modules,)
         # 省显存
         base_model.enable_input_require_grads()                # 帮模型把输入端的梯度开关打开（配合 gradient checkpointing 使用）
         base_model.gradient_checkpointing_enable()             # 开启梯度检查点，显存↓ 时间↑
@@ -98,3 +99,23 @@ class Qwen_NER_LoRA(nn.Module):
             **gen_kwargs,
         )
     
+    #训练时加噪声，推理时不加
+    def _neftune_hook_fn(self, module, input, output):
+        #output: embedding output, shape [batch, seq, hidden]
+        if (not self.training) or (self.neftune_noise_alpha is None):
+            return output  # output 标准差的一种写法：alpha / sqrt(hidden)
+        noise = torch.randn_like(output) * (self.neftune_noise_alpha / (output.size(-1) ** 0.5))
+        return output + noise
+    #启用 NEFTune
+    def activate_neftune(self, alpha: float = 5.0):
+        self.neftune_noise_alpha = alpha    # peft 包装过的模型，embedding 在 base_model.model.get_input_embeddings()
+        base = self.model.get_base_model()  # peft 提供
+        embeddings = base.get_input_embeddings()
+        if self._neftune_hook_handle is None:
+            self._neftune_hook_handle = embeddings.register_forward_hook(self._neftune_hook_fn)
+    #关闭 NEFTune
+    def deactivate_neftune(self):
+        self.neftune_noise_alpha = None
+        if self._neftune_hook_handle is not None:
+            self._neftune_hook_handle.remove()
+            self._neftune_hook_handle = None
